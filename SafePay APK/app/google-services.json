@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "899934678660",
+    "project_id": "safepay-864a5",
+    "storage_bucket": "safepay-864a5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:899934678660:android:4d4a05d9f2b674f7ea1cd1",
+        "android_client_info": {
+          "package_name": "aarambh.apps.safepay_apk"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB9KXXr5MHun7q_5PmtqcSYXU9j1P9CPgk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
