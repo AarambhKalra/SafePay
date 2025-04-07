@@ -1,0 +1,8 @@
+# Ignore environment files
+.env
+.env.*  # In case you have .env.development, .env.production, etc.
+
+# Ignore node_modules
+node_modules/
+
+firebase-service-account.json
