@@ -9,6 +9,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -16,6 +17,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
 
@@ -75,12 +77,33 @@ class OTPFragment : Fragment() {
                 if (it) {
                     Utils.hideDialog()
                     Utils.showToast(requireContext(), "Logged In Successfully")
+
+                    // 🔐 Fetch Firebase ID token here
+                    fetchFirebaseIdToken()
+
+                    // Proceed to next activity
                     startActivity(Intent(requireContext(), UsersMainActivity::class.java))
                     requireActivity().finish()
                 }
             }
         }
     }
+    private fun fetchFirebaseIdToken() {
+        val user = FirebaseAuth.getInstance().currentUser
+        user?.getIdToken(true)
+            ?.addOnSuccessListener { result ->
+                val token = result.token
+                if (token != null) {
+                    // You can send this token to your backend
+                    Log.d("FIREBASE_TOKEN", token)
+                    // Example: sendTokenToBackend(token)
+                }
+            }
+            ?.addOnFailureListener { e ->
+                Log.e("FIREBASE_TOKEN", "Token fetch failed", e)
+            }
+    }
+
 
     private fun sendOTP() {
         Utils.showDialog(requireContext(), "Sending OTP...")
