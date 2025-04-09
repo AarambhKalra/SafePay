@@ -17,38 +17,4 @@ router.get('/me', verifyFirebaseToken, async (req, res) => {
     res.json({ user });
 });
 
-// 🆕 Vendor Onboarding Route
-router.post("/onboard-vendor", verifyFirebaseToken, async (req, res) => {
-    const { storeName } = req.body;
-
-    if (!storeName) {
-        return res.status(400).json({ message: "storeName is required" });
-    }
-
-    try {
-        let user = await User.findOne({ firebaseUid: req.user.uid });
-
-        if (!user) {
-            // First-time vendor, create user
-            user = new User({
-                firebaseUid: req.user.uid,
-                phoneNumber: req.user.phone_number,
-                role: "vendor",
-                storeName
-            });
-        } else {
-            // Update existing user to vendor
-            user.role = "vendor";
-            user.storeName = storeName;
-        }
-
-        await user.save();
-
-        res.json({ message: "Vendor onboarded", user });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: "Server error" });
-    }
-});
-
 module.exports = router;

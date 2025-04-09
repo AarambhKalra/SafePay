@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Order = require("../models/Order");
+const verifyVideo = require("../utils/verify");
 
 // 📦 POST /api/orders → Place Order
 router.post("/", async (req, res) => {
@@ -59,6 +60,35 @@ router.get("/:phoneNumber", async (req, res) => {
     } catch (err) {
         console.error("❌ Error fetching orders:", err);
         res.status(500).json({ message: "Server error." });
+    }
+});
+
+// 🔧 POST /api/orders/verify
+router.post("/verify", async (req, res) => {
+    const { orderId, videoUrl } = req.body;
+
+    if (!orderId || !videoUrl) {
+        return res.status(400).json({ message: "orderId and videoUrl are required." });
+    }
+
+    try {
+        const order = await Order.findById(orderId);
+        if (!order) return res.status(404).json({ message: "Order not found" });
+
+        const imageUrls = order.product.images; // assuming images is an array of URLs
+
+        if (!imageUrls || imageUrls.length === 0) {
+            return res.status(400).json({ message: "No product images found for this order." });
+        }
+
+        // Call the verify function
+        const result = await verifyVideo(videoUrl, imageUrls);
+
+        res.status(200).json({ message: "Verification completed", ...result });
+
+    } catch (err) {
+        console.error("❌ Verification error:", err);
+        res.status(500).json({ message: "Server error during verification." });
     }
 });
 
