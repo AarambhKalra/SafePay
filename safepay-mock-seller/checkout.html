@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Checkout | SafePay</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #f9f9f9;
+        }
+
+        .navbar {
+            background: #007bff;
+            color: white;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            font-size: 1rem;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background: #fff;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+        }
+
+        h2 {
+            font-size: 1.6rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .summary {
+            background-color: #f1f1f1;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .summary p {
+            margin: 8px 0;
+        }
+
+        input,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            margin: 12px 0;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-size: 1rem;
+        }
+
+        button {
+            width: 100%;
+            background-color: #28a745;
+            color: white;
+            font-size: 1rem;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        .confirmation {
+            margin-top: 20px;
+            color: green;
+            font-weight: 600;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="navbar">
+        <div>🧾 SafePay Checkout</div>
+        <a href="index.html">← Back to Products</a>
+    </div>
+
+    <div class="container">
+        <h2>Confirm Your Order</h2>
+
+        <div class="summary">
+            <p><strong>Product:</strong> <span id="productName">Loading...</span></p>
+            <p><strong>Price:</strong> ₹<span id="productPrice">0</span></p>
+        </div>
+
+        <form id="checkoutForm">
+            <input type="text" id="customerName" placeholder="Your Name" required />
+            <input type="tel" id="customerPhone" placeholder="Phone Number" required />
+            <textarea id="customerAddress" rows="3" placeholder="Delivery Address" required></textarea>
+            <button type="submit">Place Order with SafePay</button>
+        </form>
+
+        <div class="confirmation" id="confirmation"></div>
+    </div>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const product = {
+            name: params.get("name"),
+            description: params.get("description"),
+            price: params.get("price"),
+            images: JSON.parse(params.get("images"))
+        };
+
+        document.getElementById("productName").innerText = product.name;
+        document.getElementById("productPrice").innerText = product.price;
+
+        const form = document.getElementById("checkoutForm");
+        const confirmationBox = document.getElementById("confirmation");
+
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const orderData = {
+                product: {
+                    name: product.name,
+                    description: product.description,
+                    price: product.price,
+                    images: product.images
+                },
+                customer: {
+                    name: document.getElementById("customerName").value,
+                    phoneNumber: document.getElementById("customerPhone").value,
+                    address: document.getElementById("customerAddress").value
+                }
+            };
+
+            try {
+                const res = await fetch("http://localhost:5000/api/orders", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(orderData)
+                });
+
+                const result = await res.json();
+
+                if (res.ok) {
+                    confirmationBox.innerText = "✅ Order placed successfully!";
+                    form.reset();
+                } else {
+                    confirmationBox.innerText = "❌ Failed to place order: " + result.message;
+                }
+            } catch (err) {
+                confirmationBox.innerText = "❌ Server error. Try again later.";
+                console.error(err);
+            }
+        });
+    </script>
+
+</body>
+
+</html>
