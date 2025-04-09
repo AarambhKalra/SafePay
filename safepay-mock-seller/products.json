@@ -40,5 +40,17 @@
             "https://picsum.photos/seed/band1/400/300",
             "https://picsum.photos/seed/band2/400/300"
         ]
+    },
+    {
+        "id": 5,
+        "name": "Puma Shoes",
+        "description": "Shoes lelo pyare pyare",
+        "price": 999,
+        "images": [
+            "https://firebasestorage.googleapis.com/v0/b/safepay-864a5.firebasestorage.app/o/products%2F1%2Fimage1.jpg?alt=media&token=3433a783-5c59-4091-a2df-3659c8db32a8",
+            "https://firebasestorage.googleapis.com/v0/b/safepay-864a5.firebasestorage.app/o/products%2F1%2Fimage2.jpg?alt=media&token=7345b2bb-da74-486b-af2d-4611ba1c2074",
+            "https://firebasestorage.googleapis.com/v0/b/safepay-864a5.firebasestorage.app/o/products%2F1%2Fimage3.jpg?alt=media&token=58a3676d-8a1e-4a7b-a5fd-acb9b7f0ad3b",
+            "https://firebasestorage.googleapis.com/v0/b/safepay-864a5.firebasestorage.app/o/products%2F1%2Fimage4.jpg?alt=media&token=3d00ab80-e310-4fa3-9d8e-d2beab15deae"
+        ]
     }
 ]
