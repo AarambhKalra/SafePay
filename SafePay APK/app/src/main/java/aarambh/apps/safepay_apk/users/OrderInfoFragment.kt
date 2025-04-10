@@ -10,7 +10,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -54,7 +53,7 @@ class OrderInfoFragment : Fragment() {
                         binding.productNameText.text = it.productName
                         binding.orderIdText.text = "Order ID: ${it.orderId}"
                         binding.amountText.text = "Amount: ₹${it.amount}"
-                        binding.statusText.text = "Escrow Status: ${it.escrowstatus}"
+                        binding.statusText.text = "Status: ${it.escrowstatus}"
 
                         // Set images to the slider
                         val images = if (it.images.isNotEmpty()) {
@@ -66,20 +65,11 @@ class OrderInfoFragment : Fragment() {
                         }
                         imageSliderAdapter.setImages(images)
 
-                        binding.testPaymentButton.apply {
-                            visibility = if (it.escrowstatus != "Pending") View.GONE else View.VISIBLE
-                            isEnabled = it.escrowstatus != "In Escrow"
-                            text = if (it.escrowstatus == "In Escrow") "Paid" else "Pay Now"
-                            setOnClickListener { _ ->
-                                if (!viewModel.isOrderPaid(it.orderId)) {
-                                    findNavController().navigate(R.id.action_orderInfoFragment_to_payFragment)
-                                }
-                            }
-                        }
+                        // Hide payment button as we're skipping payment
+                        binding.testPaymentButton.visibility = View.GONE
 
-                        binding.scanVerifyBtn.visibility =
-                            if (it.escrowstatus == "In Escrow") View.VISIBLE else View.GONE
-
+                        // Always show verify button
+                        binding.scanVerifyBtn.visibility = View.VISIBLE
                         binding.scanVerifyBtn.apply {
                             text = when (it.verificationStatus) {
                                 "Verifying" -> "Verifying"

@@ -10,6 +10,6 @@ data class OrderCard(
     val amount: String,
     val imageUrl: String,
     val images: List<String>,
-    val escrowstatus: String = "Pending",
-    var verificationStatus: String = "Not Verified",
+    val escrowstatus: String = "Not Started",
+    var verificationStatus: String = "Not Verified"
 ) : Parcelable

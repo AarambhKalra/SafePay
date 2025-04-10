@@ -8,8 +8,7 @@
     <fragment
         android:id="@+id/homeFragment"
         android:name="aarambh.apps.safepay_apk.users.HomeFragment"
-        android:label="fragment_home"
-        tools:layout="@layout/fragment_home" >
+        android:label="HomeFragment">
         <action
             android:id="@+id/action_homeFragment_to_orderInfoFragment"
             app:destination="@id/orderInfoFragment" />
@@ -18,32 +17,18 @@
     <fragment
         android:id="@+id/orderInfoFragment"
         android:name="aarambh.apps.safepay_apk.users.OrderInfoFragment"
-        android:label="fragment_order_info"
-        tools:layout="@layout/fragment_order_info">
+        android:label="OrderInfoFragment">
         <action
             android:id="@+id/action_orderInfoFragment_to_scanFragment"
             app:destination="@id/scanFragment" />
-        <action
-            android:id="@+id/action_orderInfoFragment_to_payFragment"
-            app:destination="@id/payFragment" />
     </fragment>
 
     <fragment
         android:id="@+id/scanFragment"
         android:name="aarambh.apps.safepay_apk.users.ScanFragment"
-        android:label="ScanFragment"
-        tools:layout="@layout/fragment_scan">
+        android:label="ScanFragment">
         <action
-            android:id="@+id/action_scanFragment_to_orderInfoFragment"
-            app:destination="@id/orderInfoFragment" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/payFragment"
-        android:name="aarambh.apps.safepay_apk.users.PayFragment"
-        tools:layout="@layout/fragment_pay">
-        <action
-            android:id="@+id/action_payFragment_to_homeFragment"
+            android:id="@+id/action_scanFragment_to_homeFragment"
             app:destination="@id/homeFragment"
             app:popUpTo="@id/homeFragment"
             app:popUpToInclusive="true" />
