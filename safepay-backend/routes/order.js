@@ -29,7 +29,7 @@ router.post("/", async (req, res) => {
                 phoneNumber: customer.phoneNumber,
                 address: customer.address
             },
-            status: "pending",
+            status: "escrow",
             verificationStatus: "not_checked"
         });
 
@@ -75,16 +75,43 @@ router.post("/verify", async (req, res) => {
         const order = await Order.findById(orderId);
         if (!order) return res.status(404).json({ message: "Order not found" });
 
-        const imageUrls = order.product.images; // assuming images is an array of URLs
+        const imageUrls = order.product.images;
 
         if (!imageUrls || imageUrls.length === 0) {
             return res.status(400).json({ message: "No product images found for this order." });
         }
 
-        // Call the verify function
-        const result = await verifyVideo(videoUrl, imageUrls);
+        // Run verification
+        const threshold = 0.6;
+        const result = await verifyVideo(videoUrl, imageUrls, threshold);
+        const matchScore = result.bestScore || 0;
 
-        res.status(200).json({ message: "Verification completed", ...result });
+        // Decide outcome
+        let verificationStatus = "fail";
+        let status = "refunded";
+        let payoutReleased = false;
+        let refundIssued = true;
+
+        if (result.match) {
+            verificationStatus = "pass";
+            status = "released";
+            payoutReleased = true;
+            refundIssued = false;
+        }
+
+        // Update order
+        order.videoUrl = videoUrl;
+        order.verificationStatus = verificationStatus;
+        order.status = status;
+        order.payoutReleased = payoutReleased;
+        order.refundIssued = refundIssued;
+        await order.save();
+
+        res.status(200).json({
+            message: `Verification ${verificationStatus.toUpperCase()}`,
+            matchScore: matchScore + "%",
+            order
+        });
 
     } catch (err) {
         console.error("❌ Verification error:", err);

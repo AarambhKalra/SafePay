@@ -28,8 +28,8 @@ const orderSchema = new mongoose.Schema(
         // Order Status
         status: {
             type: String,
-            enum: ["pending", "released", "refunded", "escrow"],
-            default: "pending"
+            enum: ["released", "refunded", "escrow"],
+            default: "escrow"
         },
 
         // Internal flags
