@@ -2,26 +2,33 @@ package aarambh.apps.safepay_apk.users
 
 import aarambh.apps.safepay_apk.R
 import aarambh.apps.safepay_apk.adapters.OrderAdapter
-import aarambh.apps.safepay_apk.models.OrderCard
+import aarambh.apps.safepay_apk.viewmodels.OrderViewModel
+import aarambh.apps.safepay_apk.viewmodels.OrderViewModelFactory
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ProgressBar
 import android.widget.TextView
+import android.widget.Toast
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import kotlinx.coroutines.launch
 
 class HomeFragment : Fragment() {
 
-
-
+    private val viewModel: OrderViewModel by activityViewModels { OrderViewModelFactory() }
     private lateinit var recyclerView: RecyclerView
     private lateinit var orderAdapter: OrderAdapter
-    private val orderList = mutableListOf<OrderCard>()
+    private lateinit var progressBar: ProgressBar
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -31,60 +38,72 @@ class HomeFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_home, container, false)
 
         recyclerView = view.findViewById(R.id.recyclerView)
+        progressBar = view.findViewById(R.id.progressBar)
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
-        // Sample Data
-        orderList.clear()
-        orderList.addAll(
-            listOf(
-                OrderCard("ORD001", "Nike Slides", "In Escrow", "₹1200", "https://example.com/image1.jpg", "In Escrow"),
-                OrderCard("ORD002", "Adidas Sneakers", "Released", "₹3200", "https://example.com/image2.jpg", "Released"),
-                OrderCard("ORD003", "Puma Running Shoes", "Refunded", "₹2500", "https://example.com/image3.jpg", "Refunded")
-            )
-        )
-
-        // Adapter with orderId click listener
-        orderAdapter = OrderAdapter(orderList) { orderId ->
-            val bundle = Bundle().apply {
-                putString("orderId", orderId)
-            }
-            findNavController().navigate(R.id.action_homeFragment_to_orderInfoFragment, bundle)
+        orderAdapter = OrderAdapter { orderId ->
+            viewModel.selectOrder(orderId)
+            findNavController().navigate(R.id.action_homeFragment_to_orderInfoFragment)
         }
         recyclerView.adapter = orderAdapter
 
-        // No orders message
-        val noOrdersText = view.findViewById<TextView>(R.id.noOrdersText)
-        if (orderList.isEmpty()) {
-            recyclerView.visibility = View.GONE
-            noOrdersText.visibility = View.VISIBLE
-        } else {
-            recyclerView.visibility = View.VISIBLE
-            noOrdersText.visibility = View.GONE
-        }
-
-        // Escrow summary
-        val escrowOrders = orderList.filter { it.status == "In Escrow" }
-        val orderCountText = view.findViewById<TextView>(R.id.orderCountText)
-        val escrowAmountText = view.findViewById<TextView>(R.id.escrowAmountText)
-
-        orderCountText.text = "${escrowOrders.size} Orders in Escrow"
-        escrowAmountText.text = "₹${calculateTotal(escrowOrders)} Total"
-
+        setupObservers(view)
+        
+        // Fetch orders with the specific phone number
+        viewModel.fetchOrders("08595758735")
+        
         return view
     }
 
-    private fun setStatusBarColor() {
-        activity?.window?.apply {
-            statusBarColor = Color.TRANSPARENT
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+    private fun setupObservers(view: View) {
+        val noOrdersText = view.findViewById<TextView>(R.id.noOrdersText)
+        val orderCountText = view.findViewById<TextView>(R.id.orderCountText)
+        val escrowAmountText = view.findViewById<TextView>(R.id.escrowAmountText)
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                // Observe loading state
+                launch {
+                    viewModel.isLoading.collect { isLoading ->
+                        progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+                    }
+                }
+
+                // Observe error state
+                launch {
+                    viewModel.error.collect { errorMessage ->
+                        errorMessage?.let {
+                            Toast.makeText(requireContext(), it, Toast.LENGTH_LONG).show()
+                        }
+                    }
+                }
+
+                // Observe orders
+                launch {
+                    viewModel.orders.collect { orders ->
+                        orderAdapter.submitList(orders)
+
+                        if (orders.isEmpty()) {
+                            recyclerView.visibility = View.GONE
+                            noOrdersText.visibility = View.VISIBLE
+                        } else {
+                            recyclerView.visibility = View.VISIBLE
+                            noOrdersText.visibility = View.GONE
+                        }
+
+                        val escrowOrders = viewModel.getEscrowOrders()
+                        orderCountText.text = "${escrowOrders.size} Orders in Escrow"
+                        escrowAmountText.text = "₹${viewModel.calculateEscrowTotal()} Total"
+                    }
+                }
             }
         }
     }
 
-    private fun calculateTotal(orders: List<OrderCard>): Int {
-        return orders.sumOf {
-            it.amount.replace("₹", "").toIntOrNull() ?: 0
+    private fun setStatusBarColor() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            requireActivity().window.statusBarColor = Color.WHITE
+            requireActivity().window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
         }
     }
 }

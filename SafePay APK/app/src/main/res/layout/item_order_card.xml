@@ -14,12 +14,26 @@
         android:padding="12dp"
         android:background="@color/blue">
 
-        <ImageView
-            android:id="@+id/productImage"
+        <FrameLayout
             android:layout_width="80dp"
-            android:layout_height="80dp"
-            android:scaleType="centerCrop"
-            android:src="@drawable/ic_launcher_background" />
+            android:layout_height="80dp">
+
+            <androidx.viewpager2.widget.ViewPager2
+                android:id="@+id/imageSlider"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <com.google.android.material.tabs.TabLayout
+                android:id="@+id/imageSliderIndicator"
+                android:layout_width="match_parent"
+                android:layout_height="8dp"
+                android:layout_gravity="bottom"
+                android:background="@android:color/transparent"
+                card_view:tabBackground="@drawable/tab_selector"
+                card_view:tabGravity="center"
+                card_view:tabIndicatorHeight="0dp"
+                card_view:tabPadding="2dp" />
+        </FrameLayout>
 
         <LinearLayout
             android:layout_width="0dp"
@@ -37,7 +51,7 @@
                 android:textSize="16sp" />
 
             <TextView
-                android:id="@+id/orderStatus"
+                android:id="@+id/escrowStatus"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:paddingHorizontal="12dp"
@@ -48,7 +62,6 @@
                 android:background="@drawable/status_default"
                 android:layout_marginTop="4dp" />
 
-
             <TextView
                 android:id="@+id/amount"
                 android:layout_width="wrap_content"
@@ -58,10 +71,4 @@
                 android:layout_marginTop="4dp"/>
         </LinearLayout>
     </LinearLayout>
-
-
-
-
-
-
 </androidx.cardview.widget.CardView>

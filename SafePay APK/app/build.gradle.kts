@@ -4,6 +4,7 @@ plugins {
     id("com.google.gms.google-services")
     id ("kotlin-kapt")
     id ("kotlin-parcelize")
+    id("androidx.navigation.safeargs.kotlin")
 }
 
 
@@ -85,5 +86,20 @@ dependencies {
     implementation ("androidx.camera:camera-lifecycle:1.3.1")
     implementation ("androidx.camera:camera-view:1.3.1")
     implementation ("androidx.camera:camera-video:1.3.0")
+
+   // implementation ("in.payu:payu-checkout-pro:1.6.1")
+    //implementation ("com.github.PayU-Checkout:CheckoutPro-android:1.6.1")
+    //implementation ("com.payu.upisdk:payu-upi-sdk:1.6.4")
+
+
+    implementation ("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
+
+//        implementation 'com.squareup.retrofit2:retrofit:2.9.0'
+//        implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
+    implementation ("com.squareup.okhttp3:okhttp:4.9.3")
+    implementation ("com.squareup.okhttp3:logging-interceptor:4.9.3")
+
+    implementation ("androidx.viewpager2:viewpager2:1.0.0")
 
 }

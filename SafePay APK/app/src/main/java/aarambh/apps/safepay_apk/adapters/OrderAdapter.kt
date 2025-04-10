@@ -5,21 +5,27 @@ import aarambh.apps.safepay_apk.models.OrderCard
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import android.widget.TextView
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
+import androidx.viewpager2.widget.ViewPager2
+import com.google.android.material.tabs.TabLayout
+import com.google.android.material.tabs.TabLayoutMediator
 
 class OrderAdapter(
-    private val orders: List<OrderCard>,
     private val onItemClick: (String) -> Unit
-) : RecyclerView.Adapter<OrderAdapter.OrderViewHolder>() {
+) : ListAdapter<OrderCard, OrderAdapter.OrderViewHolder>(OrderDiffCallback()) {
+
+    private val imageSliderAdapters = mutableMapOf<String, ImageSliderAdapter>()
+    private val tabMediators = mutableMapOf<String, TabLayoutMediator>()
 
     class OrderViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val productName: TextView = view.findViewById(R.id.productName)
-        val orderStatus: TextView = view.findViewById(R.id.orderStatus)
+        val escrowStatus: TextView = view.findViewById(R.id.escrowStatus)
         val amount: TextView = view.findViewById(R.id.amount)
-        val productImage: ImageView = view.findViewById(R.id.productImage)
+        val imageSlider: ViewPager2 = view.findViewById(R.id.imageSlider)
+        val tabLayout: TabLayout = view.findViewById(R.id.imageSliderIndicator)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): OrderViewHolder {
@@ -29,31 +35,61 @@ class OrderAdapter(
     }
 
     override fun onBindViewHolder(holder: OrderViewHolder, position: Int) {
-        val order = orders[position]
+        val order = getItem(position)
         holder.productName.text = order.productName
-        holder.orderStatus.text = order.orderStatus
-        holder.amount.text = order.amount
+        holder.escrowStatus.text = order.escrowstatus
+        holder.amount.text = "₹${order.amount}"
 
-        // Dynamic status background color
-        when (order.orderStatus.lowercase()) {
-            "in escrow" -> holder.orderStatus.setBackgroundResource(R.drawable.status_escrow)
-            "released" -> holder.orderStatus.setBackgroundResource(R.drawable.status_released)
-            "refunded" -> holder.orderStatus.setBackgroundResource(R.drawable.status_refunded)
-            else -> holder.orderStatus.setBackgroundResource(R.drawable.status_default)
+        // Set background color based on escrow status
+        when (order.escrowstatus.lowercase()) {
+            "in escrow" -> holder.escrowStatus.setBackgroundResource(R.drawable.status_escrow)
+            "released" -> holder.escrowStatus.setBackgroundResource(R.drawable.status_released)
+            "refunded" -> holder.escrowStatus.setBackgroundResource(R.drawable.status_refunded)
+            else -> holder.escrowStatus.setBackgroundResource(R.drawable.status_default)
         }
 
-        // Load image with Glide
-        Glide.with(holder.itemView.context)
-            .load(order.imageUrl)
-            .placeholder(R.drawable.icon)
-            .into(holder.productImage)
+        // Handle image slider
+        val imageAdapter = imageSliderAdapters.getOrPut(order.orderId) { ImageSliderAdapter() }
+        holder.imageSlider.adapter = imageAdapter
+        
+        // Combine all available images
+        val allImages = order.images.toMutableList()
+        if (order.imageUrl.isNotEmpty() && !allImages.contains(order.imageUrl)) {
+            allImages.add(order.imageUrl)
+        }
+        imageAdapter.setImages(allImages)
 
-        // Set click listener
+        // Set up dot indicators
+        tabMediators[order.orderId]?.detach()
+        if (allImages.isNotEmpty()) {
+            tabMediators[order.orderId] = TabLayoutMediator(holder.tabLayout, holder.imageSlider) { _, _ -> }
+                .also { it.attach() }
+            holder.tabLayout.visibility = View.VISIBLE
+        } else {
+            holder.tabLayout.visibility = View.GONE
+        }
+
         holder.itemView.setOnClickListener {
             onItemClick(order.orderId)
         }
-
     }
 
-    override fun getItemCount(): Int = orders.size
+    override fun onViewRecycled(holder: OrderViewHolder) {
+        super.onViewRecycled(holder)
+        val position = holder.adapterPosition
+        if (position != RecyclerView.NO_POSITION) {
+            val order = getItem(position)
+            tabMediators[order.orderId]?.detach()
+        }
+    }
+
+    private class OrderDiffCallback : DiffUtil.ItemCallback<OrderCard>() {
+        override fun areItemsTheSame(oldItem: OrderCard, newItem: OrderCard): Boolean {
+            return oldItem.orderId == newItem.orderId
+        }
+
+        override fun areContentsTheSame(oldItem: OrderCard, newItem: OrderCard): Boolean {
+            return oldItem == newItem
+        }
+    }
 }

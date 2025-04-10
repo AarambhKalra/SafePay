@@ -12,8 +12,7 @@
         tools:layout="@layout/fragment_home" >
         <action
             android:id="@+id/action_homeFragment_to_orderInfoFragment"
-            app:destination="@id/orderInfoFragment"
-            />
+            app:destination="@id/orderInfoFragment" />
     </fragment>
 
     <fragment
@@ -21,14 +20,14 @@
         android:name="aarambh.apps.safepay_apk.users.OrderInfoFragment"
         android:label="fragment_order_info"
         tools:layout="@layout/fragment_order_info">
-        <argument
-            android:name="orderId"
-            app:argType="string"
-            android:defaultValue="" />
         <action
             android:id="@+id/action_orderInfoFragment_to_scanFragment"
             app:destination="@id/scanFragment" />
+        <action
+            android:id="@+id/action_orderInfoFragment_to_payFragment"
+            app:destination="@id/payFragment" />
     </fragment>
+
     <fragment
         android:id="@+id/scanFragment"
         android:name="aarambh.apps.safepay_apk.users.ScanFragment"
@@ -39,5 +38,15 @@
             app:destination="@id/orderInfoFragment" />
     </fragment>
 
+    <fragment
+        android:id="@+id/payFragment"
+        android:name="aarambh.apps.safepay_apk.users.PayFragment"
+        tools:layout="@layout/fragment_pay">
+        <action
+            android:id="@+id/action_payFragment_to_homeFragment"
+            app:destination="@id/homeFragment"
+            app:popUpTo="@id/homeFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
 
 </navigation>

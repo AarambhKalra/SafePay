@@ -14,9 +14,18 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.navigation.fragment.findNavController
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.messaging.FirebaseMessaging
+import android.util.Log
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
+import aarambh.apps.safepay_apk.OrderRepository
+import aarambh.apps.safepay_apk.api.RetrofitClient
 
 class SignInFragment : Fragment() {
     private lateinit var binding: FragmentSignInBinding
+    private val auth = FirebaseAuth.getInstance()
+    private val repository = OrderRepository(RetrofitClient.orderApiService)
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -85,5 +94,42 @@ class SignInFragment : Fragment() {
                 decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
             }
         }
+    }
+
+    private fun updateFcmToken() {
+        auth.currentUser?.uid?.let { uid ->
+            FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+                if (!task.isSuccessful) {
+                    Log.w("SignInFragment", "Fetching FCM registration token failed", task.exception)
+                    return@addOnCompleteListener
+                }
+
+                // Get new FCM registration token
+                val token = task.result
+                Log.d("SignInFragment", "FCM Token: $token")
+
+                // Send token to your server
+                viewLifecycleOwner.lifecycleScope.launch {
+                    repository.updateFcmToken(uid, token).fold(
+                        onSuccess = { success ->
+                            if (success) {
+                                Log.d("SignInFragment", "Successfully updated FCM token")
+                            } else {
+                                Log.e("SignInFragment", "Failed to update FCM token")
+                            }
+                        },
+                        onFailure = { exception ->
+                            Log.e("SignInFragment", "Error updating FCM token", exception)
+                        }
+                    )
+                }
+            }
+        }
+    }
+
+    // Call this method after successful sign in
+    private fun onSignInSuccess() {
+        updateFcmToken()
+        // ... rest of your sign in success handling
     }
 }

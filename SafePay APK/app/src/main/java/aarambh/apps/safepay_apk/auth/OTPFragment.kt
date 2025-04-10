@@ -2,7 +2,9 @@ package aarambh.apps.safepay_apk.auth
 
 import aarambh.apps.safepay_apk.R
 import aarambh.apps.safepay_apk.Utils
+import aarambh.apps.safepay_apk.OrderRepository
 import aarambh.apps.safepay_apk.activity.UsersMainActivity
+import aarambh.apps.safepay_apk.api.RetrofitClient
 import aarambh.apps.safepay_apk.databinding.FragmentOTPBinding
 import aarambh.apps.safepay_apk.viewmodels.AuthViewModel
 import android.content.Intent
@@ -18,6 +20,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.launch
 
 
@@ -78,8 +81,38 @@ class OTPFragment : Fragment() {
                     Utils.hideDialog()
                     Utils.showToast(requireContext(), "Logged In Successfully")
 
-                    // 🔐 Fetch Firebase ID token here
-                    fetchFirebaseIdToken()
+                    // Get FCM token and update it in the backend
+                    FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            val fcmToken = task.result
+                            val firebaseUid = FirebaseAuth.getInstance().currentUser?.uid
+                            
+                            if (firebaseUid != null) {
+                                // Update FCM token in backend
+                                lifecycleScope.launch {
+                                    try {
+                                        val repository = OrderRepository(RetrofitClient.orderApiService)
+                                        repository.updateFcmToken(firebaseUid, fcmToken).fold(
+                                            onSuccess = { success ->
+                                                if (success) {
+                                                    Log.d("OTPFragment", "FCM token updated successfully")
+                                                } else {
+                                                    Log.e("OTPFragment", "Failed to update FCM token")
+                                                }
+                                            },
+                                            onFailure = { exception ->
+                                                Log.e("OTPFragment", "Error updating FCM token", exception)
+                                            }
+                                        )
+                                    } catch (e: Exception) {
+                                        Log.e("OTPFragment", "Error updating FCM token", e)
+                                    }
+                                }
+                            }
+                        } else {
+                            Log.e("OTPFragment", "Failed to get FCM token", task.exception)
+                        }
+                    }
 
                     // Proceed to next activity
                     startActivity(Intent(requireContext(), UsersMainActivity::class.java))
@@ -88,22 +121,6 @@ class OTPFragment : Fragment() {
             }
         }
     }
-    private fun fetchFirebaseIdToken() {
-        val user = FirebaseAuth.getInstance().currentUser
-        user?.getIdToken(true)
-            ?.addOnSuccessListener { result ->
-                val token = result.token
-                if (token != null) {
-                    // You can send this token to your backend
-                    Log.d("FIREBASE_TOKEN", token)
-                    // Example: sendTokenToBackend(token)
-                }
-            }
-            ?.addOnFailureListener { e ->
-                Log.e("FIREBASE_TOKEN", "Token fetch failed", e)
-            }
-    }
-
 
     private fun sendOTP() {
         Utils.showDialog(requireContext(), "Sending OTP...")

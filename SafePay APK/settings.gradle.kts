@@ -8,8 +8,14 @@ pluginManagement {
             }
         }
         mavenCentral()
-
+//        maven {
+//            url = uri("https://payu.jfrog.io/artifactory/android-sdk")
+//        }
         gradlePluginPortal()
+    }
+
+    plugins {
+        id("androidx.navigation.safeargs.kotlin") version "2.7.7" // Use latest or match your Navigation version
     }
 }
 dependencyResolutionManagement {
