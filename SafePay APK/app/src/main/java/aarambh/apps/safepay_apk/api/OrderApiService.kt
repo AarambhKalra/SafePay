@@ -6,8 +6,6 @@ import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Body
 import retrofit2.http.POST
-import aarambh.apps.safepay_apk.data.request.UpdateOrderMediaRequest
-import aarambh.apps.safepay_apk.data.response.UpdateOrderMediaResponse
 
 interface OrderApiService {
     @GET("api/orders/{phoneNumber}")
@@ -30,10 +28,10 @@ interface OrderApiService {
         @Body request: UpdateOrderMediaRequest
     ): UpdateOrderMediaResponse
 
-    @POST("orders/media")
-    suspend fun updateOrderMedia(
-        @Body request: UpdateOrderMediaRequest
-    ): UpdateOrderMediaResponse
+    @POST("api/orders/verify")
+    suspend fun verifyOrder(
+        @Body request: VideoUrlRequest
+    ): VideoUrlResponse
 }
 
 data class UpdateOrderStatusRequest(
@@ -62,6 +60,16 @@ data class UpdateOrderMediaRequest(
 )
 
 data class UpdateOrderMediaResponse(
+    val success: Boolean,
+    val message: String
+)
+
+data class VideoUrlRequest(
+    val orderId: String,
+    val videoUrl: String
+)
+
+data class VideoUrlResponse(
     val success: Boolean,
     val message: String
 ) 

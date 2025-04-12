@@ -22,9 +22,11 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.launch
+import com.google.firebase.auth.FirebaseAuth
+import android.util.Log
 
 class HomeFragment : Fragment() {
-
+    private val TAG = "SafePay_Home"
     private val viewModel: OrderViewModel by activityViewModels { OrderViewModelFactory() }
     private lateinit var recyclerView: RecyclerView
     private lateinit var orderAdapter: OrderAdapter
@@ -49,10 +51,40 @@ class HomeFragment : Fragment() {
 
         setupObservers(view)
         
-        // Fetch orders with the specific phone number
-        viewModel.fetchOrders("08595758735")
+        // Get user's phone number and fetch orders
+        getUserPhoneAndFetchOrders()
         
         return view
+    }
+
+    private fun getUserPhoneAndFetchOrders() {
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        if (currentUser != null) {
+            val phoneNumber = currentUser.phoneNumber
+            if (!phoneNumber.isNullOrEmpty()) {
+                // Format phone number: remove +91 prefix and any leading zeros
+                val formattedNumber = phoneNumber
+                    .replace("+91", "") // Remove country code if present
+                    .replaceFirst("^0+", "") // Remove leading zeros
+                
+                Log.d(TAG, "Original phone: $phoneNumber")
+                Log.d(TAG, "Formatted phone: $formattedNumber")
+                
+                if (formattedNumber.length == 10) {
+                    viewModel.fetchOrders(formattedNumber)
+                } else {
+                    Log.e(TAG, "Invalid phone number format: $formattedNumber")
+                    Toast.makeText(requireContext(), "Invalid phone number format", Toast.LENGTH_LONG).show()
+                }
+            } else {
+                Log.e(TAG, "No phone number found for user")
+                Toast.makeText(requireContext(), "No phone number found", Toast.LENGTH_LONG).show()
+            }
+        } else {
+            Log.e(TAG, "No user logged in")
+            Toast.makeText(requireContext(), "Please log in first", Toast.LENGTH_LONG).show()
+            // Navigate to login screen or handle accordingly
+        }
     }
 
     private fun setupObservers(view: View) {
